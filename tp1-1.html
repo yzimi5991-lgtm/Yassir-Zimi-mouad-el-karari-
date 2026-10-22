@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>TP Budget - Question 1</title>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <style>
+    body{font-family:system-ui,sans-serif;max-width:640px;margin:2rem auto;padding:0 1rem}
+    form{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem}
+    li{margin:.3rem 0}
+  </style>
+</head>
+<body>
+  <div id="app">
+    <h1>Budget étudiant</h1>
+
+    <h2>Nouvelle dépense</h2>
+    <form @submit.prevent="ajouterDepense">
+      <input v-model="nouvelleDepense.titre" placeholder="Titre">
+      <input v-model.number="nouvelleDepense.montant" type="number" min="0" step="0.01" placeholder="Montant">
+      <select v-model="nouvelleDepense.categorie">
+        <option v-for="c in categories" :key="c" :value="c">{{ c }}</option>
+      </select>
+      <button type="submit">Ajouter</button>
+    </form>
+
+    <ul>
+      <li v-for="d in depenses" :key="d.id">{{ d.titre }} ({{ d.categorie }}) : {{ d.montant }} DH</li>
+    </ul>
+  </div>
+
+  <script>
+    const { createApp } = Vue
+    createApp({
+      data() {
+        return {
+          budgetMensuel: 300,
+          depenses: [
+            { id: 1, titre: 'Courses', montant: 45, categorie: 'Alimentation' },
+            { id: 2, titre: 'Cinéma', montant: 12, categorie: 'Loisirs' },
+            { id: 3, titre: 'Bus', montant: 20, categorie: 'Transport' }
+          ],
+          nouvelleDepense: { titre: '', montant: null, categorie: 'Alimentation' },
+          categories: ['Alimentation', 'Transport', 'Loisirs', 'Études'],
+          filtreCategorie: 'toutes',
+          afficherStats: false
+        }
+      },
+      methods: {
+        ajouterDepense() {
+          this.depenses.push({ id: Date.now(), ...this.nouvelleDepense })
+          this.nouvelleDepense = { titre: '', montant: null, categorie: 'Alimentation' }
+        }
+      }
+    }).mount('#app')
+  </script>
+</body>
+</html>

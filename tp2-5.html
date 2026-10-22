@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+  <div id="app">
+    <p>Valeur totale du stock : {{ valeurTotaleStock }} DH</p>
+    <p>Articles en rupture : {{ nombreRupture }}</p>
+
+    <h3>Ajouter un article</h3>
+    <form @submit.prevent="ajouterArticle">
+      <input v-model="nouvelArticle.nom" placeholder="Nom">
+      <select v-model="nouvelArticle.categorie">
+        <option v-for="c in categories" :key="c" :value="c">{{ c }}</option>
+      </select>
+      <input v-model.number="nouvelArticle.quantite" type="number" placeholder="Quantité">
+      <input v-model.number="nouvelArticle.prixUnitaire" type="number" placeholder="Prix">
+      <input v-model.number="nouvelArticle.seuilAlerte" type="number" placeholder="Seuil">
+      <button>Ajouter</button>
+    </form>
+
+    <h3>Stock</h3>
+    <input v-model="rechercheTexte" placeholder="Rechercher un article">
+    <select v-model="filtreCategorie">
+      <option value="toutes">Toutes</option>
+      <option v-for="c in categories" :key="c" :value="c">{{ c }}</option>
+    </select>
+
+    <ul>
+      <li v-for="a in articlesFiltres" :key="a.id">
+        {{ a.nom }} ({{ a.categorie }}) : {{ a.quantite }}
+        <button @click="decrementer(a)">-</button>
+        <button @click="incrementer(a)">+</button>
+        <span v-if="a.quantite === 0">🔴 Rupture</span>
+        <span v-else-if="a.quantite <= a.seuilAlerte">🟠 Stock faible</span>
+        <span v-else>🟢 Ok</span>
+        <button @click="toggleDetail(a)">Détail</button>
+        <button @click="supprimerArticle(a)">Supprimer</button>
+
+        <div v-show="detailOuvert === a.id">
+          Prix unitaire : {{ a.prixUnitaire }} DH |
+          Seuil d'alerte : {{ a.seuilAlerte }} |
+          Valeur : {{ a.quantite * a.prixUnitaire }} DH
+        </div>
+      </li>
+    </ul>
+  </div>
+
+  <script>
+    Vue.createApp({
+      data() {
+        return {
+          rechercheTexte: '',
+          filtreCategorie: 'toutes',
+          detailOuvert: null,
+          categories: ['Boissons', 'Snacks', 'Fournitures'],
+          nouvelArticle: { nom: '', categorie: 'Boissons', quantite: 0, prixUnitaire: 0, seuilAlerte: 5 },
+          articles: [
+            { id: 1, nom: 'Café', categorie: 'Boissons', quantite: 20, prixUnitaire: 3, seuilAlerte: 5 },
+            { id: 2, nom: 'Thé', categorie: 'Boissons', quantite: 3, prixUnitaire: 2, seuilAlerte: 5 },
+            { id: 3, nom: 'Croissant', categorie: 'Snacks', quantite: 0, prixUnitaire: 4, seuilAlerte: 5 }
+          ]
+        }
+      },
+      computed: {
+        articlesFiltres() {
+          return this.articles.filter(a => {
+            const okTexte = a.nom.toLowerCase().includes(this.rechercheTexte.toLowerCase())
+            const okCategorie = this.filtreCategorie === 'toutes' || a.categorie === this.filtreCategorie
+            return okTexte && okCategorie
+          })
+        },
+        valeurTotaleStock() {
+          return this.articles.reduce((s, a) => s + a.quantite * a.prixUnitaire, 0)
+        },
+        nombreRupture() {
+          return this.articles.filter(a => a.quantite === 0).length
+        }
+      },
+      methods: {
+        incrementer(article) {
+          article.quantite++
+        },
+        decrementer(article) {
+          if (article.quantite > 0) {
+            article.quantite--
+          }
+        },
+        toggleDetail(article) {
+          if (this.detailOuvert === article.id) {
+            this.detailOuvert = null
+          } else {
+            this.detailOuvert = article.id
+          }
+        },
+        supprimerArticle(article) {
+          this.articles = this.articles.filter(a => a.id !== article.id)
+        },
+        ajouterArticle() {
+          if (this.nouvelArticle.nom.trim() === '') return
+          this.articles.push({ id: Date.now(), ...this.nouvelArticle })
+          this.nouvelArticle = { nom: '', categorie: 'Boissons', quantite: 0, prixUnitaire: 0, seuilAlerte: 5 }
+        }
+      }
+    }).mount('#app')
+  </script>
+</body>
+</html>

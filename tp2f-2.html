@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+  <div id="app">
+    <form @submit.prevent="ajouterLivre">
+      <input type="text" v-model="newBook.title" placeholder="Titre">
+      <input type="text" v-model="newBook.author" placeholder="Auteur">
+      <input type="number" v-model.number="newBook.year" placeholder="Année">
+      <select v-model="newBook.genre">
+        <option>Roman</option>
+        <option>Science-fiction</option>
+        <option>Histoire</option>
+      </select>
+      Favori <input type="checkbox" v-model="newBook.isFav">
+      <button :disabled="!formulaireValide">Ajouter</button>
+    </form>
+
+    <div v-for="book in books" :key="book.id">
+      <h3>{{ book.title }} <span v-if="book.isFav">⭐</span></h3>
+      <p>{{ book.author }} - {{ book.year }} - {{ book.genre }}</p>
+    </div>
+  </div>
+
+  <script>
+    Vue.createApp({
+      data() {
+        return {
+          books: [
+            { id: 1, title: 'Dune', author: 'Frank Herbert', year: 1965, genre: 'Science-fiction', isFav: true, keywords: [] },
+            { id: 2, title: 'Germinal', author: 'Émile Zola', year: 1885, genre: 'Roman', isFav: false, keywords: [] }
+          ],
+          newBook: { title: '', author: '', year: 2024, genre: 'Roman', isFav: false, keywords: [] }
+        }
+      },
+      computed: {
+        formulaireValide() {
+          return this.newBook.title.trim() !== '' && this.newBook.author.trim() !== ''
+        }
+      },
+      methods: {
+        ajouterLivre() {
+          this.books.push({ ...this.newBook, id: Date.now() })
+          this.newBook = { title: '', author: '', year: 2024, genre: 'Roman', isFav: false, keywords: [] }
+        }
+      }
+    }).mount('#app')
+  </script>
+</body>
+</html>

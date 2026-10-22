@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <style>.active { background: lightblue; }</style>
+</head>
+<body>
+  <div id="app">
+    <form @submit.prevent="ajouterDepense">
+      <input v-model="nouvelleDepense.titre" placeholder="Titre">
+      <input v-model.number="nouvelleDepense.montant" type="number" placeholder="Montant">
+      <select v-model="nouvelleDepense.categorie">
+        <option>Alimentation</option>
+        <option>Transport</option>
+        <option>Loisirs</option>
+      </select>
+      <button>Ajouter</button>
+    </form>
+
+    <button :class="{ active: filtreCategorie === 'toutes' }" @click="selectionnerCategorie('toutes')">Toutes</button>
+    <button v-for="c in categories" :key="c" :class="{ active: filtreCategorie === c }" @click="selectionnerCategorie(c)">{{ c }}</button>
+
+    <p>Total filtré : {{ totalFiltre }} DH</p>
+    <p>Total général : {{ totalGeneral }} DH</p>
+    <p>Moyenne : {{ moyenneDepense }} DH</p>
+
+    <p v-if="totalGeneral < budgetMensuel * 0.8">OK : budget maîtrisé</p>
+    <p v-else-if="totalGeneral <= budgetMensuel">ATTENTION : proche de la limite</p>
+    <p v-else>DÉPASSÉ : budget dépassé</p>
+
+    <button @click="afficherStats = !afficherStats">Afficher le détail par catégorie</button>
+    <div v-show="afficherStats">
+      <p v-for="c in categories" :key="c">{{ c }} : {{ totalCategorie(c) }} DH</p>
+    </div>
+
+    <ul v-if="depensesFiltrees.length > 0">
+      <li v-for="d in depensesFiltrees" :key="d.id">
+        {{ d.titre }} - {{ d.montant }} DH ({{ d.categorie }})
+        <button @click="supprimerDepense(d)">Supprimer</button>
+      </li>
+    </ul>
+    <p v-else>Aucune dépense à afficher.</p>
+  </div>
+
+  <script>
+    Vue.createApp({
+      data() {
+        return {
+          budgetMensuel: 100,
+          depenses: [
+            { id: 1, titre: 'Courses', montant: 45, categorie: 'Alimentation' },
+            { id: 2, titre: 'Cinéma', montant: 12, categorie: 'Loisirs' }
+          ],
+          nouvelleDepense: { titre: '', montant: 0, categorie: 'Alimentation' },
+          categories: ['Alimentation', 'Transport', 'Loisirs'],
+          filtreCategorie: 'toutes',
+          afficherStats: false
+        }
+      },
+      computed: {
+        depensesFiltrees() {
+          if (this.filtreCategorie === 'toutes') return this.depenses
+          return this.depenses.filter(d => d.categorie === this.filtreCategorie)
+        },
+        totalFiltre() {
+          return this.depensesFiltrees.reduce((s, d) => s + d.montant, 0)
+        },
+        totalGeneral() {
+          return this.depenses.reduce((s, d) => s + d.montant, 0)
+        },
+        moyenneDepense() {
+          if (this.depensesFiltrees.length === 0) return 0
+          return this.totalFiltre / this.depensesFiltrees.length
+        }
+      },
+      methods: {
+        ajouterDepense() {
+          this.depenses.push({ id: Date.now(), ...this.nouvelleDepense })
+          this.nouvelleDepense = { titre: '', montant: 0, categorie: 'Alimentation' }
+        },
+        supprimerDepense(depense) {
+          this.depenses = this.depenses.filter(d => d.id !== depense.id)
+        },
+        selectionnerCategorie(cat) {
+          this.filtreCategorie = cat
+        },
+        totalCategorie(cat) {
+          return this.depenses
+            .filter(d => d.categorie === cat)
+            .reduce((s, d) => s + d.montant, 0)
+        }
+      }
+    }).mount('#app')
+  </script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+  <div id="app">
+    <p>Valeur totale du stock : {{ valeurTotaleStock }} DH</p>
+    <p>Articles en rupture : {{ nombreRupture }}</p>
+
+    <input v-model="rechercheTexte" placeholder="Rechercher un article">
+    <select v-model="filtreCategorie">
+      <option value="toutes">Toutes</option>
+      <option v-for="c in categories" :key="c" :value="c">{{ c }}</option>
+    </select>
+
+    <ul>
+      <li v-for="a in articlesFiltres" :key="a.id">
+        {{ a.nom }} ({{ a.categorie }}) : {{ a.quantite }}
+      </li>
+    </ul>
+  </div>
+
+  <script>
+    Vue.createApp({
+      data() {
+        return {
+          rechercheTexte: '',
+          filtreCategorie: 'toutes',
+          categories: ['Boissons', 'Snacks', 'Fournitures'],
+          articles: [
+            { id: 1, nom: 'Café', categorie: 'Boissons', quantite: 20, prixUnitaire: 3, seuilAlerte: 5 },
+            { id: 2, nom: 'Thé', categorie: 'Boissons', quantite: 3, prixUnitaire: 2, seuilAlerte: 5 },
+            { id: 3, nom: 'Croissant', categorie: 'Snacks', quantite: 0, prixUnitaire: 4, seuilAlerte: 5 }
+          ]
+        }
+      },
+      computed: {
+        articlesFiltres() {
+          return this.articles.filter(a => {
+            const okTexte = a.nom.toLowerCase().includes(this.rechercheTexte.toLowerCase())
+            const okCategorie = this.filtreCategorie === 'toutes' || a.categorie === this.filtreCategorie
+            return okTexte && okCategorie
+          })
+        },
+        valeurTotaleStock() {
+          return this.articles.reduce((s, a) => s + a.quantite * a.prixUnitaire, 0)
+        },
+        nombreRupture() {
+          return this.articles.filter(a => a.quantite === 0).length
+        }
+      }
+    }).mount('#app')
+  </script>
+</body>
+</html>

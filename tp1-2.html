@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <style>.active { background: lightblue; }</style>
+</head>
+<body>
+  <div id="app">
+    <form @submit.prevent="ajouterDepense">
+      <input v-model="nouvelleDepense.titre" placeholder="Titre">
+      <input v-model.number="nouvelleDepense.montant" type="number" placeholder="Montant">
+      <select v-model="nouvelleDepense.categorie">
+        <option>Alimentation</option>
+        <option>Transport</option>
+        <option>Loisirs</option>
+      </select>
+      <button>Ajouter</button>
+    </form>
+
+    <button :class="{ active: filtreCategorie === 'toutes' }" @click="selectionnerCategorie('toutes')">Toutes</button>
+    <button v-for="c in categories" :key="c" :class="{ active: filtreCategorie === c }" @click="selectionnerCategorie(c)">{{ c }}</button>
+
+    <ul>
+      <li v-for="d in depensesFiltrees" :key="d.id">{{ d.titre }} - {{ d.montant }} DH ({{ d.categorie }})</li>
+    </ul>
+  </div>
+
+  <script>
+    Vue.createApp({
+      data() {
+        return {
+          depenses: [
+            { id: 1, titre: 'Courses', montant: 45, categorie: 'Alimentation' },
+            { id: 2, titre: 'Cinéma', montant: 12, categorie: 'Loisirs' }
+          ],
+          nouvelleDepense: { titre: '', montant: 0, categorie: 'Alimentation' },
+          categories: ['Alimentation', 'Transport', 'Loisirs'],
+          filtreCategorie: 'toutes'
+        }
+      },
+      computed: {
+        depensesFiltrees() {
+          if (this.filtreCategorie === 'toutes') return this.depenses
+          return this.depenses.filter(d => d.categorie === this.filtreCategorie)
+        }
+      },
+      methods: {
+        ajouterDepense() {
+          this.depenses.push({ id: Date.now(), ...this.nouvelleDepense })
+        },
+        selectionnerCategorie(cat) {
+          this.filtreCategorie = cat
+        }
+      }
+    }).mount('#app')
+  </script>
+</body>
+</html>

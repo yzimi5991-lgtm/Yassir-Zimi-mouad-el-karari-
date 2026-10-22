@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+  <div id="app">
+    <h2>Moyenne générale : {{ moyenneGenerale }} / 20</h2>
+
+    <p v-if="moyenneGenerale >= 16">Mention : Très bien</p>
+    <p v-else-if="moyenneGenerale >= 14">Mention : Bien</p>
+    <p v-else-if="moyenneGenerale >= 12">Mention : Assez bien</p>
+    <p v-else-if="moyenneGenerale >= 10">Mention : Passable</p>
+    <p v-else>Mention : Insuffisant</p>
+
+    <p v-if="moduleMax">Meilleur module : {{ moduleMax.nom }} ({{ moduleMax.note }})</p>
+    <p v-if="moduleMin">Moins bon module : {{ moduleMin.nom }} ({{ moduleMin.note }})</p>
+    <p>Tous validés : {{ tousValides() ? 'Oui' : 'Non' }}</p>
+
+    <h3>Ajouter un module</h3>
+    <form @submit.prevent="ajouterModule">
+      <input v-model="nouveauModule.nom" placeholder="Nom du module">
+      <input v-model.number="nouveauModule.note" type="number" min="0" max="20" step="0.25" placeholder="Note">
+      <input v-model.number="nouveauModule.coefficient" type="number" min="1" placeholder="Coefficient">
+      <button>Ajouter</button>
+    </form>
+
+    <h3>Classement</h3>
+    <input v-model="recherche" placeholder="Rechercher un module">
+    <ul>
+      <li v-for="m in modulesAffiches" :key="m.id">
+        {{ m.nom }} : {{ m.note }} (coef {{ m.coefficient }})
+        <button @click="toggleDetail(m)">Détail</button>
+        <button @click="supprimerModule(m)">Supprimer</button>
+        <div v-show="detailOuvert === m.id">
+          Points pondérés : {{ m.note * m.coefficient }}
+          <span v-if="m.note < 10">| À rattraper</span>
+        </div>
+      </li>
+    </ul>
+
+    <h3>À rattraper ({{ modulesARattraper.length }})</h3>
+    <ul>
+      <li v-for="m in modulesARattraper" :key="m.id">{{ m.nom }} : {{ m.note }}</li>
+    </ul>
+  </div>
+
+  <script>
+    Vue.createApp({
+      data() {
+        return {
+          recherche: '',
+          detailOuvert: null,
+          nouveauModule: { nom: '', note: 0, coefficient: 1 },
+          modules: [
+            { id: 1, nom: 'Algorithmique', note: 15, coefficient: 3 },
+            { id: 2, nom: 'Bases de données', note: 12, coefficient: 2 },
+            { id: 3, nom: 'Réseaux', note: 8, coefficient: 2 },
+            { id: 4, nom: 'Mathématiques', note: 17, coefficient: 3 }
+          ]
+        }
+      },
+      computed: {
+        moyenneGenerale() {
+          const somme = this.modules.reduce((s, m) => s + m.note * m.coefficient, 0)
+          const coefs = this.modules.reduce((s, m) => s + m.coefficient, 0)
+          if (coefs === 0) return 0
+          return Math.round((somme / coefs) * 100) / 100
+        },
+        modulesARattraper() {
+          return this.modules.filter(m => m.note < 10)
+        },
+        modulesTries() {
+          return [...this.modules].sort((a, b) => b.note - a.note)
+        },
+        modulesAffiches() {
+          return this.modulesTries.filter(m =>
+            m.nom.toLowerCase().includes(this.recherche.toLowerCase())
+          )
+        },
+        moduleMax() {
+          if (this.modulesTries.length === 0) return null
+          return this.modulesTries[0]
+        },
+        moduleMin() {
+          if (this.modulesTries.length === 0) return null
+          return this.modulesTries[this.modulesTries.length - 1]
+        }
+      },
+      methods: {
+        toggleDetail(module) {
+          this.detailOuvert = this.detailOuvert === module.id ? null : module.id
+        },
+        supprimerModule(module) {
+          this.modules = this.modules.filter(m => m.id !== module.id)
+        },
+        ajouterModule() {
+          if (this.nouveauModule.nom.trim() === '') return
+          this.modules.push({ id: Date.now(), ...this.nouveauModule })
+          this.nouveauModule = { nom: '', note: 0, coefficient: 1 }
+        },
+        tousValides() {
+          return this.modules.every(m => m.note >= 10)
+        }
+      }
+    }).mount('#app')
+  </script>
+</body>
+</html>

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+  <div id="app">
+    <h2>Moyenne générale : {{ moyenneGenerale }} / 20</h2>
+
+    <p v-if="moyenneGenerale >= 16">Mention : Très bien</p>
+    <p v-else-if="moyenneGenerale >= 14">Mention : Bien</p>
+    <p v-else-if="moyenneGenerale >= 12">Mention : Assez bien</p>
+    <p v-else-if="moyenneGenerale >= 10">Mention : Passable</p>
+    <p v-else>Mention : Insuffisant</p>
+
+    <h3>Classement</h3>
+    <input v-model="recherche" placeholder="Rechercher un module">
+    <ul>
+      <li v-for="m in modulesAffiches" :key="m.id">
+        {{ m.nom }} : {{ m.note }} (coef {{ m.coefficient }})
+      </li>
+    </ul>
+
+    <h3>À rattraper ({{ modulesARattraper.length }})</h3>
+    <ul>
+      <li v-for="m in modulesARattraper" :key="m.id">{{ m.nom }} : {{ m.note }}</li>
+    </ul>
+  </div>
+
+  <script>
+    Vue.createApp({
+      data() {
+        return {
+          recherche: '',
+          modules: [
+            { id: 1, nom: 'Algorithmique', note: 15, coefficient: 3 },
+            { id: 2, nom: 'Bases de données', note: 12, coefficient: 2 },
+            { id: 3, nom: 'Réseaux', note: 8, coefficient: 2 },
+            { id: 4, nom: 'Mathématiques', note: 17, coefficient: 3 }
+          ]
+        }
+      },
+      computed: {
+        moyenneGenerale() {
+          const somme = this.modules.reduce((s, m) => s + m.note * m.coefficient, 0)
+          const coefs = this.modules.reduce((s, m) => s + m.coefficient, 0)
+          if (coefs === 0) return 0
+          return Math.round((somme / coefs) * 100) / 100
+        },
+        modulesARattraper() {
+          return this.modules.filter(m => m.note < 10)
+        },
+        modulesTries() {
+          return [...this.modules].sort((a, b) => b.note - a.note)
+        },
+        modulesAffiches() {
+          return this.modulesTries.filter(m =>
+            m.nom.toLowerCase().includes(this.recherche.toLowerCase())
+          )
+        }
+      }
+    }).mount('#app')
+  </script>
+</body>
+</html>

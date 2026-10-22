@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+  <div id="app">
+    <h2>Moyenne générale : {{ moyenneGenerale }} / 20</h2>
+
+    <ul>
+      <li v-for="m in modules" :key="m.id">
+        {{ m.nom }} : {{ m.note }} (coef {{ m.coefficient }})
+      </li>
+    </ul>
+  </div>
+
+  <script>
+    Vue.createApp({
+      data() {
+        return {
+          modules: [
+            { id: 1, nom: 'Algorithmique', note: 15, coefficient: 3 },
+            { id: 2, nom: 'Bases de données', note: 12, coefficient: 2 },
+            { id: 3, nom: 'Réseaux', note: 8, coefficient: 2 },
+            { id: 4, nom: 'Mathématiques', note: 17, coefficient: 3 }
+          ]
+        }
+      },
+      computed: {
+        moyenneGenerale() {
+          const somme = this.modules.reduce((s, m) => s + m.note * m.coefficient, 0)
+          const coefs = this.modules.reduce((s, m) => s + m.coefficient, 0)
+          if (coefs === 0) return 0
+          return Math.round((somme / coefs) * 100) / 100
+        }
+      }
+    }).mount('#app')
+  </script>
+</body>
+</html>
